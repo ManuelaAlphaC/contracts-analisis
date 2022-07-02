@@ -67,7 +67,10 @@ contract ThePossessed is ERC721A, ERC2981, Ownable {
 
     /**
      * @dev Set the metadata to Possessed or Blessed State
-     * verifica se il mitente possiede il token che sta chiamando
+     * se l'utente imposta "isPssssd" su true, verà verificato se il mitente possiede il token 
+     * che sta chiamando in qunato esso è memorizzato nella mapping "_isPossessed"
+     * in questo modo impostandolo su true combia lo stato dei metadata NFT
+     * da blessedBaseURI a possessedBaseURI 
      */
     function setIsPossessed(uint256 tokenID, bool isPssssd) external {
         if (!_exists(tokenID)) revert NonExistentToken();
@@ -92,7 +95,7 @@ contract ThePossessed is ERC721A, ERC2981, Ownable {
     }
 
     /**
-     * @dev Just in case there is a bug and we need to update the uri
+     * @dev Nel caso ci sia un bug e dobbiamo aggiornare l'uri
      */
     function setPreRevealBaseURI(string memory newBaseURI) public onlyOwner {
         preRevealBaseURI = newBaseURI;
@@ -146,9 +149,15 @@ contract ThePossessed is ERC721A, ERC2981, Ownable {
     /**
      * @dev Variation of {ERC721Metadata-tokenURI}.
      * Returns different token uri depending on blessed or possessed.
+     * verifica se l'id dato in imputi esiste quindi è stato già mintato e non supera la TotalSupply
+     * alla variabile baseURI viene assegnato lo stato dei metadata del tokenId dato in input
+     * viene chiesto se nella mapping "_isPossessed" il i metadata sono di tipo blessedBaseURI 
+     * oppure è stato dato il permesso di passare allo stato possessedBaseURI
+     * in base alla risposta che viene data la funzione restituirà il baseURI+tokenId 
+     * altrimenti se nessuno dei due metadata è stato impostato viene restituito il preRevealBaseURI
      */
     function tokenURI(uint256 tokenID) public view override returns (string memory) {
-        require(_exists(tokenID), "ERC721Metadata: URI query for nonexistent token");
+        require(_exists(tokenID), "ERC721Metadata: URI query for nonexistent token"); 
         string memory baseURI = _isPossessed[tokenID] ? possessedBaseURI : blessedBaseURI;
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, _toString(tokenID))) : preRevealBaseURI;
     }
